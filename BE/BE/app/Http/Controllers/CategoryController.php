@@ -20,54 +20,17 @@ class CategoryController extends Controller
 
     public function create()
     {
-        //lấy toàn bộ data trong Category
-        $data = Category::all();
-        $recusive = new Recusive($data);
-        $categorys = $recusive->recursion($data);
-        // echo $categorys;
-        // foreach ($data as $value) {
-            // xét data tìm thg cha
-            // if ($value['parent_id'] == 0) {
-            //     echo "<option>" . $value['name'] . "</option>";
-            //     // xét lại data để tìm thg con
-            //     foreach ($data as $value2) {
-            //         // echo "<pre>";
-            //         // echo "</pre>";
-
-            //         if ($value2['parent_id'] == $value['id']) {
-            //             echo "<option>" . $value2->name . "</option>";
-            //             foreach ($data as $value3) {
-            //                 # code...
-            //                 if ($value3->parent_id == $value2->id) {
-            //                     echo "<option>" . $value3->name . "</option>";
-            //                 }
-            //             }
-            //         }
-            //     }
-            // }
-        // }
-        // echo "<select>";
-        // echo "</select>";
-        // var_dump($this->htmlSelect);
-        // $categorys = $this->recursion($data,0,'');
+        $categorys = $this->getCategory($parentId = "");
         return view('category.add',compact('categorys'));
     }
 
-    // function recursion($data,$parentId = 0,$text=''){
-    //     foreach ($data as $value) {
-    //         if($value->parent_id == $parentId){
-    //             $this->htmlSelect.="<option>" .$text. $value['name'] . "</option>";
-    //             $this->recursion($data,$value->id,$text.='-');
-    //         }   
-    //     }
-    //     return $this->htmlSelect;
-    // }
 
     public function index(){
         $categorys = $this->categorys->latest()->paginate(5);
         return view('category',compact('categorys'));
     }
 
+    // thêm danh mục
     public function store(Request $request){
         $this->categorys->create([
             'name' => $request->name,
@@ -75,5 +38,37 @@ class CategoryController extends Controller
             'slug' => str_slug($request->name)
         ]);
         return redirect()->route('create');
+    }
+
+    public function getCategory($parentId){
+        $data = Category::all();
+        $recusive = new Recusive($data);
+        $categorys = $recusive->recursion($parentId);
+        return $categorys;
+    }
+
+    // sửa danh mục
+    public function edit($id){
+        $category = $this->categorys->find($id); 
+        $categorys = $this->getCategory($category->parent_id);
+        // dd($categorys);
+
+        return view('category.edit', compact('category', 'categorys'));
+    }   
+
+    // update danh mục
+    public function update($id, Request $request){
+        $this->categorys->find($id)->update([
+            'name' => $request->name,
+            'parent_id' => $request->parent_id,
+            'slug' => str_slug($request->name)
+        ]);
+        return redirect()->route('category.index');
+    }
+
+    // xóa danh mục
+    public function delete($id){
+        $this->categorys->find($id)->delete();
+        return redirect()->route('category.index');
     }
 }

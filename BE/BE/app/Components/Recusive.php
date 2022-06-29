@@ -11,11 +11,15 @@ class Recusive {
         $this->data = $data;
     }
 
-    public function recursion($data,$parentId = 0,$text=''){
+    public function recursion($parentId, $id = 0, $text=''){
         foreach ($this->data as $value) {
-            if($value->parent_id == $parentId){
-                $this->htmlSelect.="<option value='" . $value['id']. "'>" .$text. $value['name'] . "</option>";
-                $this->recursion($data,$value->id,$text.'-');
+            if($value->parent_id === $id){
+                if(!empty($parentId) && $parentId == $value['id']){
+                    $this->htmlSelect.="<option selected value='" . $value['id']. "'>" .$text. $value['name'] . "</option>";
+                }else{
+                    $this->htmlSelect.="<option value='" . $value['id']. "'>" .$text. $value['name'] . "</option>";
+                }
+                $this->recursion($parentId,$value->id,$text.'-');
             }   
         }
         return $this->htmlSelect;
